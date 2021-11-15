@@ -5,6 +5,23 @@ Run a bedrock server in a Docker container.
 This Docker image will download the Bedrock Server app and set it up, along with its dependencies.
 
 ## Usage
+
+### New Installation
+```shell
+docker image build -t bedrock-server .
+```
+
+```shell
+docker container run\
+    -v "/root/bedrock-config:/bedrock-server/config"\
+    -v "/root/bedrock-worlds:/bedrock-server/worlds"\
+    -p 19199:19132/udp\
+    --name bedrock-nether\
+    --rm\
+    -itd\
+    bedrock-server
+```
+
 ### New installation
 1. Prepare the persistent volumes:
     1. Create a volume for the configuration:<br/>
@@ -12,7 +29,7 @@ This Docker image will download the Bedrock Server app and set it up, along with
     2. Create a volume for the worlds:<br/>
         `docker volume create --name "bedrock-worlds"`
 2. Create the Docker container:
-    ```bash
+    ```shell
     docker create --name=minecraft -it\
         -v "bedrock-config:/bedrock-server/config"\
         -v "bedrock-worlds:/bedrock-server/worlds"\
@@ -23,7 +40,7 @@ This Docker image will download the Bedrock Server app and set it up, along with
 3. Prepare the config files
     1. Either start the server once and stop it
     2. or copy the files from the original archives
-3. Configure the default files in the `config` volume:
+4. Configure the default files in the `config` volume:
     1. Configure the `server.properties` to your likings.
     2. Configure the `whitelist.json` in case you have set `white-list=true` in the above step. Note: The `xuid` is optional and will automatically be added as soon as a matching player connects. Here's an example of a `whitelist.json` file:
         ```json
@@ -48,7 +65,7 @@ This Docker image will download the Bedrock Server app and set it up, along with
             }
         ]
         ```
-4. Start the server:<br/>
+5. Start the server:<br/>
     `docker start minecraft`
 
 ### Updating

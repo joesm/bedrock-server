@@ -1,7 +1,8 @@
 FROM ubuntu:18.04
-ARG BDS_Version=1.16.100.04
+ARG game_version=1.17.41.01
 
-ENV VERSION=$BDS_Version
+ENV VERSION=$game_version
+ENV LD_LIBRARY_PATH=.
 
 # Install dependencies
 RUN apt-get update && \
@@ -9,16 +10,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Download and extract the bedrock server
-RUN if [ "$VERSION" = "latest" ] ; then \
-        LATEST_VERSION=$( \
-            curl -v --silent  https://www.minecraft.net/en-us/download/server/bedrock/ 2>&1 | \
-            grep -o 'https://minecraft.azureedge.net/bin-linux/[^"]*' | \
-            sed 's#.*/bedrock-server-##' | sed 's/.zip//') && \
-        export VERSION=$LATEST_VERSION && \
-        echo "Setting VERSION to $LATEST_VERSION" ; \
-    else echo "Using VERSION of $VERSION"; \
-    fi && \
-    curl https://minecraft.azureedge.net/bin-linux/bedrock-server-${VERSION}.zip --output bedrock-server.zip && \
+RUN curl https://minecraft.azureedge.net/bin-linux/bedrock-server-${VERSION}.zip --output bedrock-server.zip && \
     unzip bedrock-server.zip -d bedrock-server && \
     rm bedrock-server.zip
 
@@ -31,10 +23,5 @@ RUN mkdir /bedrock-server/config && \
     ln -s /bedrock-server/config/permissions.json /bedrock-server/permissions.json && \
     ln -s /bedrock-server/config/whitelist.json /bedrock-server/whitelist.json
 
-EXPOSE 19132/udp
-
-VOLUME /bedrock-server/worlds /bedrock-server/config
-
 WORKDIR /bedrock-server
-ENV LD_LIBRARY_PATH=.
 CMD ./bedrock_server

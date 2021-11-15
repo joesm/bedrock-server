@@ -1,0 +1,17 @@
+---
+- name: Set up new Minecraft game
+  hosts: localhost
+
+  tasks:
+    - set_fact:
+        game_id: '{{ lookup("env", "game_id") }}
+
+    - name: create game directory
+      file:
+        path: /root/bedrock-{{ game_id }}/
+
+    - name: write/update server.properties
+
+    - name: initialize whitelist.json
+
+    - name: initialize permissions.json
