@@ -4,14 +4,14 @@
 
   tasks:
     - set_fact:
-        level_name: '{{ lookup("env", "LEVEL_NAME") | default("easy") }}'
+        level_name: '{{ lookup("env", "LEVEL_NAME") }}'
         server_port: '{{ lookup("env", "SERVER_PORT") | default("19132") }}'
         server_portv6: '{{ lookup("env", "SERVER_PORTV6") | default("19133") }}'
 
     - name: stop old container if it exists
       docker_container:
         name: bedrock-{{ level_name }}
-        state: stopped
+        state: absent
 
     - name: create game directory
       file:
