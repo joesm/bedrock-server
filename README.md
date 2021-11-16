@@ -13,8 +13,7 @@ docker image build -t bedrock-server .
 
 ```shell
 docker container run\
-    -v "/root/bedrock-config:/bedrock-server/config"\
-    -v "/root/bedrock-worlds:/bedrock-server/worlds"\
+    -v "/root/bedrock-nether:/bedrock-server/docker"\
     -p 19199:19132/udp\
     --name bedrock-nether\
     --rm\

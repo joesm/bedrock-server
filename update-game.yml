@@ -1,0 +1,61 @@
+---
+- name: Set up new Minecraft game
+  hosts: localhost
+
+  tasks:
+    - set_fact:
+        level_name: '{{ lookup("env", "LEVEL_NAME") | default("easy") }}'
+        server_port: '{{ lookup("env", "SERVER_PORT") | default("19132") }}'
+        server_portv6: '{{ lookup("env", "SERVER_PORTV6") | default("19133") }}'
+
+    - name: stop old container if it exists
+      docker_container:
+        name: bedrock-{{ level_name }}
+        state: stopped
+
+    - name: create game directory
+      file:
+        path: /root/bedrock-{{ level_name }}
+        group: teamcity
+        mode: g+ws
+        state: directory
+      become: yes
+
+    - name: create worlds directory
+      file:
+        path: /root/bedrock-{{ level_name }}/worlds
+        group: teamcity
+        mode: g+w
+        state: directory
+      become: yes
+      register: world_path
+
+    - name: backup world
+      archive:
+        path: /root/bedrock-{{ level_name }}/worlds/{{ level_name }}
+        dest: '{{ level_name }}.mcworld'
+        format: zip
+        force_archive: yes
+      when: 'world_path.changed == false'
+
+    - name: write/update server.properties
+      template:
+        src: server.properties
+        dest: /root/bedrock-{{ level_name }}/server.properties
+        group: teamcity
+        mode: g+w
+      become: yes
+
+    - name: start container
+      docker_container:
+        name: bedrock-{{ level_name }}
+        image: bedrock-server
+        auto_remove: yes
+        detach: yes
+        interactive: yes
+        tty: yes
+        published_ports:
+          - "{{ server_port }}:19132/udp"
+        volumes:
+          - /root/bedrock-{{ level_name }}:/bedrock-server/docker
+        state: started
