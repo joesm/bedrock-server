@@ -14,7 +14,32 @@
         name: bedrock-{{ level_name }}
         state: absent
 
-    - name: create game directories
+    - name: check for world save
+      stat:
+        path: '{{ world_path }}'
+      become: yes
+      register: world_save
+
+    - name: check for world backup
+      stat:
+        path: '{{ data_path }}.mcworld'
+      become: yes
+      register: world_backup
+
+    - name: backup world
+      shell:
+        cmd: '(cd {{ world_path }} && zip -r - *) > {{ level_name }}.mcworld'
+      become: yes
+      when: world_save.stat.exists and lookup("env", "SKIP_BACKUP") != "true"
+
+    - name: clear world data
+      file:
+        path: '{{ world_path }}/'
+        state: absent
+      become: yes
+      when: lookup("env", "RESTORE_WORLD_BACKUP") == "true"
+
+    - name: create directories
       file:
         path: '{{ item.path }}'
         group: teamcity
@@ -25,18 +50,15 @@
         - { path: '/root/bedrock', mode: g+ws }
         - { path: '/root/bedrock/{{ level_name }}', mode: g+w }
         - { path: '/root/bedrock/{{ level_name }}/worlds', mode: g+w }
+        - { path: '{{ world_path }}', mode: g+w }
 
-    - name: check for game save
-      stat:
-        path: '{{ world_path }}'
-      register: world_save
+    - name: restore world backup
+      unarchive:
+        src: '{{ data_path }}.mcworld'
+        dest: '{{ world_path }}'
+        remote_src: yes
       become: yes
-
-    - name: backup world
-      shell:
-        cmd: '(cd {{ world_path }} && zip -r - *) > {{ level_name }}.mcworld'
-      become: yes
-      when: world_save.stat.exists and ansible_env.SKIP_BACKUP != "true"
+      when: world_backup.stat.exists and (lookup("env", "RESTORE_WORLD_BACKUP") == "true" or not world_save.stat.exists)
 
     - name: write/update server.properties
       template:
