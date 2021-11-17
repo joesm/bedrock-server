@@ -36,7 +36,7 @@
       shell:
         cmd: '(cd {{ world_path }} && zip -r - *) > {{ level_name }}.mcworld'
       become: yes
-      when: world_save.stat.exists and lookup("env", "SKIP_BACKUP") != "true"
+      when: world_save.stat.exists and ansible_env.SKIP_BACKUP != "true"
 
     - name: write/update server.properties
       template:
@@ -53,6 +53,7 @@
         auto_remove: yes
         detach: yes
         interactive: yes
+        tty: yes
         published_ports:
           - "{{ server_port }}:19132/udp"
         volumes:
