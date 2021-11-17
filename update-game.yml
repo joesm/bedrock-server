@@ -8,14 +8,14 @@
         msg: 'A required environment variable is not set'
       when: 'item == ""'
       loop:
-        - '{{ lookup("env", "LEVEL_NAME") }}'
-        - '{{ lookup("env", "SERVER_PORT") }}'
+        - '{{ ansible_env.LEVEL_NAME }}'
+        - '{{ ansible_env.SERVER_PORT }}'
 
     - set_fact:
-        level_name: '{{ lookup("env", "LEVEL_NAME") }}'
-        server_port: '{{ lookup("env", "SERVER_PORT") }}'
-        data_path: '/root/bedrock/{{ lookup("env", "LEVEL_NAME") }}'
-        world_path: '/root/bedrock/{{ lookup("env", "LEVEL_NAME") }}/worlds/{{ lookup("env", "LEVEL_NAME") }}'
+        level_name: '{{ ansible_env.LEVEL_NAME }}'
+        server_port: '{{ ansible_env.SERVER_PORT }}'
+        data_path: '/root/bedrock/{{ ansible_env.LEVEL_NAME }}'
+        world_path: '/root/bedrock/{{ ansible_env.LEVEL_NAME }}/worlds/{{ ansible_env.LEVEL_NAME }}'
 
     - name: stop old container if it exists
       docker_container:
