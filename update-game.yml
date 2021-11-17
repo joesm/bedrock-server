@@ -67,3 +67,4 @@
         volumes:
           - '{{ data_path }}:/bedrock-server/docker'
         state: started
+      when: 'lookup("env", "PREVENT_RESTART") == true'
