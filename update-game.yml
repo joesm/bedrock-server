@@ -3,45 +3,53 @@
   hosts: localhost
 
   tasks:
+    - name: Check for environment variables
+      fail:
+        msg: 'A required environment variable is not set'
+      when: 'item == ""'
+      loop:
+        - '{{ lookup("env", "LEVEL_NAME") }}'
+        - '{{ lookup("env", "SERVER_PORT") }}'
+
     - set_fact:
         level_name: '{{ lookup("env", "LEVEL_NAME") }}'
-        server_port: '{{ lookup("env", "SERVER_PORT") | default("19132") }}'
-        server_portv6: '{{ lookup("env", "SERVER_PORTV6") | default("19133") }}'
+        server_port: '{{ lookup("env", "SERVER_PORT") }}'
+        data_path: '/root/bedrock/{{ lookup("env", "LEVEL_NAME") }}'
+        world_path: '/root/bedrock/{{ lookup("env", "LEVEL_NAME") }}/worlds/{{ lookup("env", "LEVEL_NAME") }}'
 
     - name: stop old container if it exists
       docker_container:
         name: bedrock-{{ level_name }}
         state: absent
 
-    - name: create game directory
+    - name: create game directories
       file:
-        path: /root/bedrock-{{ level_name }}
+        path: '{{ item.path }}'
         group: teamcity
-        mode: g+ws
+        mode: '{{ item.mode }}'
         state: directory
       become: yes
+      loop:
+        - { path: '/root/bedrock', mode: g+ws }
+        - { path: '/root/bedrock/{{ level_name }}', mode: g+w }
+        - { path: '/root/bedrock/{{ level_name }}/worlds', mode: g+w }
 
-    - name: create worlds directory
-      file:
-        path: /root/bedrock-{{ level_name }}/worlds
-        group: teamcity
-        mode: g+w
-        state: directory
+    - name: check for game save
+      stat:
+        path: '{{ world_path }}'
+      register: world_save
       become: yes
-      register: world_path
 
     - name: backup world
-      archive:
-        path: /root/bedrock-{{ level_name }}/worlds/{{ level_name }}
-        dest: '{{ level_name }}.mcworld'
-        format: zip
-        force_archive: yes
-      when: 'world_path.changed == false'
+      shell:
+        cmd: '(cd {{ world_path }} && zip -r - *) > {{ level_name }}.mcworld'
+      become: yes
+      when: world_save.stat.exists
 
     - name: write/update server.properties
       template:
         src: server.properties
-        dest: /root/bedrock-{{ level_name }}/server.properties
+        dest: /root/bedrock/{{ level_name }}/server.properties
         group: teamcity
         mode: g+w
       become: yes
@@ -57,5 +65,5 @@
         published_ports:
           - "{{ server_port }}:19132/udp"
         volumes:
-          - /root/bedrock-{{ level_name }}:/bedrock-server/docker
+          - '{{ data_path }}:/bedrock-server/docker'
         state: started
