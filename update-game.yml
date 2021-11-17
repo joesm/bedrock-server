@@ -6,8 +6,8 @@
     - set_fact:
         level_name: '{{ ansible_env.LEVEL_NAME }}'
         server_port: '{{ ansible_env.SERVER_PORT }}'
-        data_path: '/root/bedrock/{{ ansible_env.LEVEL_NAME }}'
-        world_path: '/root/bedrock/{{ ansible_env.LEVEL_NAME }}/worlds/{{ ansible_env.LEVEL_NAME }}'
+        data_path: '/opt/bedrock/{{ ansible_env.LEVEL_NAME }}'
+        world_path: '/opt/bedrock/{{ ansible_env.LEVEL_NAME }}/worlds/{{ ansible_env.LEVEL_NAME }}'
 
     - name: stop old container if it exists
       docker_container:
@@ -29,8 +29,7 @@
     - name: backup world
       shell:
         cmd: '(cd {{ world_path }} && zip -r - *) > {{ level_name }}.mcworld'
-      become: yes
-      when: world_save.stat.exists and lookup("env", "SKIP_BACKUP") != "true"
+      when: world_save.stat.exists and lookup("env", "SKIP_WORLD_BACKUP") != "true"
 
     - name: clear world data
       file:
@@ -47,15 +46,18 @@
         state: directory
       become: yes
       loop:
-        - { path: '/root/bedrock', mode: g+ws }
-        - { path: '/root/bedrock/{{ level_name }}', mode: g+w }
-        - { path: '/root/bedrock/{{ level_name }}/worlds', mode: g+w }
-        - { path: '{{ world_path }}', mode: g+w }
+        - { path: '/opt/bedrock', mode: g+ws }
+        - { path: '/opt/bedrock/{{ level_name }}', mode: g+w }
+        - { path: '/opt/bedrock/{{ level_name }}/worlds', mode: g+w }
+        - { path: '{{ world_path }}', mode: g+ws }
 
     - name: restore world backup
       unarchive:
         src: '{{ data_path }}.mcworld'
         dest: '{{ world_path }}'
+        owner: root
+        group: teamcity
+        mode: g+w
         remote_src: yes
       become: yes
       when: world_backup.stat.exists and (lookup("env", "RESTORE_WORLD_BACKUP") == "true" or not world_save.stat.exists)
@@ -63,7 +65,8 @@
     - name: write/update server.properties
       template:
         src: server.properties
-        dest: /root/bedrock/{{ level_name }}/server.properties
+        dest: /opt/bedrock/{{ level_name }}/server.properties
+        owner: root
         group: teamcity
         mode: g+w
       become: yes
@@ -81,4 +84,4 @@
         volumes:
           - '{{ data_path }}:/bedrock-server/docker'
         state: started
-      when: 'lookup("env", "SKIP_RESTART") != "true"'
+      when: 'lookup("env", "SKIP_CONTAINER_RESTART") != "true"'
