@@ -3,14 +3,6 @@
   hosts: localhost
 
   tasks:
-    - name: Check for environment variables
-      fail:
-        msg: 'A required environment variable is not set'
-      when: 'item == ""'
-      loop:
-        - '{{ ansible_env.LEVEL_NAME }}'
-        - '{{ ansible_env.SERVER_PORT }}'
-
     - set_fact:
         level_name: '{{ ansible_env.LEVEL_NAME }}'
         server_port: '{{ ansible_env.SERVER_PORT }}'
@@ -61,7 +53,6 @@
         auto_remove: yes
         detach: yes
         interactive: yes
-        tty: yes
         published_ports:
           - "{{ server_port }}:19132/udp"
         volumes:
