@@ -44,7 +44,7 @@
       shell:
         cmd: '(cd {{ world_path }} && zip -r - *) > {{ level_name }}.mcworld'
       become: yes
-      when: world_save.stat.exists and lookup("env", "PREVENT_BACKUP") != "true"
+      when: world_save.stat.exists and lookup("env", "SKIP_BACKUP") != "true"
 
     - name: write/update server.properties
       template:
@@ -67,4 +67,4 @@
         volumes:
           - '{{ data_path }}:/bedrock-server/docker'
         state: started
-      when: 'lookup("env", "PREVENT_RESTART") == "true"'
+      when: 'lookup("env", "SKIP_RESTART") != "true"'
