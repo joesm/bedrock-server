@@ -80,7 +80,7 @@
         interactive: yes
         tty: yes
         published_ports:
-          - "{{ server_port }}:19132/udp"
+          - "{{ server_port }}:{{ server_port }}/udp"
         volumes:
           - '{{ data_path }}:/bedrock-server/docker'
         state: started
