@@ -10,7 +10,7 @@
         world_path: '/opt/bedrock/{{ ansible_env.LEVEL_NAME }}/worlds/{{ ansible_env.LEVEL_NAME }}'
 
     - name: stop old container if it exists
-      docker_container:
+      docker_swarm_service:
         name: bedrock-{{ level_name }}
         state: absent
 
@@ -72,16 +72,20 @@
       become: yes
 
     - name: start container
-      docker_container:
+      docker_swarm_service:
         name: bedrock-{{ level_name }}
         image: bedrock-server
-        auto_remove: yes
-        detach: yes
-        interactive: yes
         tty: yes
-        published_ports:
-          - "{{ server_port }}:{{ server_port }}/udp"
-        volumes:
-          - '{{ data_path }}:/bedrock-server/docker'
-        state: started
+        publish:
+          - mode: ingress
+            protocol: udp
+            published_port: '{{ server_port }}'
+            target_port: '{{ server_port }}'
+        mounts:
+          - target: '/bedrock-server/docker'
+            source: '{{ data_path }}'
+            type: bind
+        replicas: 1
+        state: present
+
       when: 'lookup("env", "SKIP_CONTAINER_RESTART") != "true"'
