@@ -1,4 +1,17 @@
 ---
+#############################################################################
+# Update Minecraft Game Service
+#
+# Invocation:
+#   ansible-playbook -i hosts.cfg update-game.yml
+#
+# The LEVEL_NAME and SERVER_PORT environment variables are required
+# and must be set prior to running this playbook.
+#
+# There are many other variables use to set options. Please see
+# the "server.properties" file for a full list of optional
+# environment variables with explanations.
+#############################################################################
 - name: Set up new Minecraft game
   hosts: localhost
 
@@ -9,14 +22,18 @@
         data_path: '/opt/bedrock/{{ ansible_env.LEVEL_NAME }}'
         world_path: '/opt/bedrock/{{ ansible_env.LEVEL_NAME }}/worlds/{{ ansible_env.LEVEL_NAME }}'
 
-    - name: stop old container if it exists
+    - name: remove old docker service
       docker_swarm_service:
         name: bedrock-{{ level_name }}
         state: absent
 
+    - name: wait for service to stop
+      wait_for:
+        timeout: 5
+
     - name: check for world save
       stat:
-        path: '{{ world_path }}'
+        path: '{{ world_path }}/level.dat'
       become: yes
       register: world_save
 
@@ -71,7 +88,7 @@
         mode: g+w
       become: yes
 
-    - name: start container
+    - name: start new docker service
       docker_swarm_service:
         name: bedrock-{{ level_name }}
         image: bedrock-server
