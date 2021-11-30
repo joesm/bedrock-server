@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-ARG bedrock_version=1.17.41.01
+ARG bedrock_version
 
 ENV VERSION=$bedrock_version
 ENV LD_LIBRARY_PATH=.
