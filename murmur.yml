@@ -1,0 +1,18 @@
+---
+# docker service create --name murmur -p 64738:64738 -p 64738:64738/udp --mount type=bind,src=/opt/murmur,dst=/data mattikus/murmur:v1.3.4
+
+version: "3.9"
+services:
+  murmur:
+    image: mattikus/murmur:v1.3.4
+    deploy:
+      replicas: 1
+    ports:
+      - 64738:64738
+      - 64738:64738/udp
+    volumes:
+      - type: bind
+        source: /opt/murmur
+        target: /data
+    networks:
+      - ingress

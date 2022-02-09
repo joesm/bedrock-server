@@ -18,11 +18,9 @@ RUN curl https://minecraft.azureedge.net/bin-linux/bedrock-server-${VERSION}.zip
 RUN mkdir /bedrock-server/docker && \
     mv /bedrock-server/server.properties /bedrock-server/docker && \
     mv /bedrock-server/permissions.json /bedrock-server/docker && \
-    mv /bedrock-server/whitelist.json /bedrock-server/docker && \
     ln -s /bedrock-server/docker/worlds /bedrock-server/worlds && \
     ln -s /bedrock-server/docker/server.properties /bedrock-server/server.properties && \
     ln -s /bedrock-server/docker/permissions.json /bedrock-server/permissions.json && \
-    ln -s /bedrock-server/docker/whitelist.json /bedrock-server/whitelist.json
 
 WORKDIR /bedrock-server
 CMD ./bedrock_server
