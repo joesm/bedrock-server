@@ -20,7 +20,7 @@ RUN mkdir /bedrock-server/docker && \
     mv /bedrock-server/permissions.json /bedrock-server/docker && \
     ln -s /bedrock-server/docker/worlds /bedrock-server/worlds && \
     ln -s /bedrock-server/docker/server.properties /bedrock-server/server.properties && \
-    ln -s /bedrock-server/docker/permissions.json /bedrock-server/permissions.json && \
+    ln -s /bedrock-server/docker/permissions.json /bedrock-server/permissions.json
 
 WORKDIR /bedrock-server
 CMD ./bedrock_server
