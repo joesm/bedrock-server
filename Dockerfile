@@ -6,7 +6,7 @@ ENV LD_LIBRARY_PATH=.
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y unzip curl libcurl4 libssl1.0.0 && \
+    apt-get install -y unzip curl libcurl4 libssl1.1 && \
     rm -rf /var/lib/apt/lists/*
 
 # Download and extract the bedrock server
